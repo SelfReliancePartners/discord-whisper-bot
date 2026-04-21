@@ -4,7 +4,7 @@ import discord
 from faster_whisper import WhisperModel
 
 # モデルを読み込む（起動時に1回だけ）
-model = WhisperModel("small", device="cpu", compute_type="int8")
+model = WhisperModel("tiny", device="cpu")
 
 def transcribe_local(audio_path):
     segments, info = model.transcribe(audio_path, language="ja")
