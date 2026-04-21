@@ -1,3 +1,32 @@
+import logging
+import aiohttp
+import asyncio
+
+# --- ログ最適化 ---
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("discord").setLevel(logging.WARNING)
+logging.getLogger("discord.client").setLevel(logging.ERROR)
+logging.getLogger("aiohttp").setLevel(logging.ERROR)
+logging.getLogger("aiohttp.websocket").setLevel(logging.ERROR)
+
+# --- print の代わり ---
+DEBUG = False
+def log(*args):
+    if DEBUG:
+        print(*args)
+
+# --- 安全な送信関数 ---
+async def safe_send(channel, content=None, file=None):
+    try:
+        if file:
+            await channel.send(content, file=file)
+        else:
+            await channel.send(content)
+    except Exception:
+        pass  # Render Free の切断は無視
+
+
+
 import os
 import io
 import discord
@@ -35,12 +64,12 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f"Logged in as {bot.user}")
+    log(f"Logged in as {bot.user}")
     try:
         synced = await bot.tree.sync()
-        print(f"Slash commands synced: {len(synced)}")
+        log(f"Slash commands synced: {len(synced)}")
     except Exception as e:
-        print(e)
+        log(e)
 
 
 @bot.tree.command(
@@ -120,12 +149,15 @@ async def on_message(message):
 
         text = transcribe_local("auto_audio.wav")
 
-        await message.channel.send(
+        await safe_send(
+            message.channel,
             f"📝 **自動文字起こし（{attachment.filename}）**\n{text}"
         )
 
     except Exception as e:
-        await message.channel.send(f"❌ 自動文字起こしエラー: {e}")
+        await safe_send(
+            message.channel,
+            f"❌ 自動文字起こしエラー: {e}")
 
     # 重要：on_message を使うときは commands の処理も通す
     await bot.process_commands(message)
