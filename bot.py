@@ -97,5 +97,39 @@ async def transcribe(interaction: discord.Interaction, message_ids: str):
 
     await interaction.followup.send(f"📝 **文字起こし結果（{len(ids)}件）**\n\n{output}")
 
+@bot.event
+async def on_message(message):
+    # Bot自身のメッセージは無視
+    if message.author.bot:
+        return
+
+    # 添付ファイルがない場合は無視
+    if not message.attachments:
+        return
+
+    attachment = message.attachments[0]
+
+    # 音声ファイルかどうか判定
+    if not attachment.filename.lower().endswith((".ogg", ".mp3", ".wav", ".m4a", ".webm")):
+        return
+
+    try:
+        audio_bytes = await attachment.read()
+        with open("auto_audio.wav", "wb") as f:
+            f.write(audio_bytes)
+
+        text = transcribe_local("auto_audio.wav")
+
+        await message.channel.send(
+            f"📝 **自動文字起こし（{attachment.filename}）**\n{text}"
+        )
+
+    except Exception as e:
+        await message.channel.send(f"❌ 自動文字起こしエラー: {e}")
+
+    # 重要：on_message を使うときは commands の処理も通す
+    await bot.process_commands(message)
+
+
 
 bot.run(DISCORD_TOKEN)
