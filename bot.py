@@ -7,7 +7,14 @@ from faster_whisper import WhisperModel
 model = WhisperModel("tiny", device="cpu")
 
 def transcribe_local(audio_path):
-    segments, info = model.transcribe(audio_path, language="ja")
+    segments, info = model.transcribe(
+        audio_path,
+        language="ja",
+        beam_size=5,
+        vad_filter=True,
+        temperature=0.0,
+        best_of=3
+    )
     text = "".join([seg.text for seg in segments])
     return text
 
