@@ -57,6 +57,12 @@ def transcribe_local(audio_path):
     )
     text = "".join([seg.text for seg in segments])
     return text
+# --- Whisper を非同期で動かすためのラッパ ---
+import asyncio
+
+async def transcribe_async(path: str):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, transcribe_local, path)
 
 from discord import app_commands
 from discord.ext import commands
@@ -126,7 +132,7 @@ async def transcribe(interaction: discord.Interaction, message_ids: str):
                 f.write(audio_bytes)
                
 # ローカル Whisper で文字起こし
-            text = transcribe_local("audio.wav")
+            text = await transcribe_async("audio.wav")
             results.append(f"🎧 **{mid}**:\n{text}")
         except Exception as e:
             results.append(f"❌ **{mid}**: Whisperエラー → {e}")
@@ -158,7 +164,7 @@ async def on_message(message):
         with open("auto_audio.wav", "wb") as f:
             f.write(audio_bytes)
 
-        text = transcribe_local("auto_audio.wav")
+        text = await transcribe_async("auto_audio.wav")
 
         await safe_send(
             message.channel,
