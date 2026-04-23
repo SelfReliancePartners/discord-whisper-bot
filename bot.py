@@ -60,6 +60,17 @@ def transcribe_local(audio_path):
 # --- Whisper を非同期で動かすためのラッパ ---
 import asyncio
 
+# --- Render Web Service を落とさないための keep-alive タスク ---
+async def keep_alive():
+    import aiohttp
+    while True:
+        try:
+            async with aiohttp.ClientSession() as session:
+                await session.get("http://localhost:10000")
+        except:
+            pass
+        await asyncio.sleep(15)  # 15秒ごとに送る（負荷ほぼゼロ）
+        
 async def transcribe_async(path: str):
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, transcribe_local, path)
@@ -82,6 +93,10 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
     log(f"Logged in as {bot.user}")
+    
+    # 🔥 keep-alive をバックグラウンドで起動
+    bot.loop.create_task(keep_alive())
+    
     try:
         synced = await bot.tree.sync()
         log(f"Slash commands synced: {len(synced)}")
