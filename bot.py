@@ -25,7 +25,18 @@ async def safe_send(channel, content=None, file=None):
     except Exception:
         pass  # Render Free の切断は無視
 
+# =========================================================
+# 🔥 ここにダミーHTTPサーバーを追加（Render Web Service 安定化）
+# =========================================================
+import threading
+from http.server import SimpleHTTPRequestHandler, HTTPServer
 
+def run_dummy_server():
+    server = HTTPServer(("0.0.0.0", 10000), SimpleHTTPRequestHandler)
+    server.serve_forever()
+
+threading.Thread(target=run_dummy_server, daemon=True).start()
+# =========================================================
 
 import os
 import io
