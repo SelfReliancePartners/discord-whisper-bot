@@ -44,7 +44,7 @@ import discord
 from faster_whisper import WhisperModel
 
 # モデルを読み込む（起動時に1回だけ）
-　model = WhisperModel("tiny", device="cpu")
+   model = WhisperModel("tiny", device="cpu")
 #　model = WhisperModel("distil-small.en", device="cpu", compute_type="int8")
 
 def transcribe_local(audio_path):
